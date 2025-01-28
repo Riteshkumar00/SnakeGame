@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+      display: block;
+      margin: 0 auto;
+      background-color: #1d1d1d;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="500" height="500"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const gridSize = 20;
+    let snake = [{ x: 50, y: 50 }];
+    let food = { x: 80, y: 80 };
+    let direction = "right";
+    let gameInterval;
+    
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw snake
+      snake.forEach(segment => {
+        ctx.fillStyle = "green";
+        ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+      });
+
+      // Draw food
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(food.x, food.y, gridSize, gridSize);
+    }
+
+    function move() {
+      const head = { ...snake[0] };
+
+      // Move the snake in the direction
+      if (direction === "right") head.x += gridSize;
+      if (direction === "left") head.x -= gridSize;
+      if (direction === "up") head.y -= gridSize;
+      if (direction === "down") head.y += gridSize;
+
+      // Handle wall wrapping
+      if (head.x < 0) head.x = canvas.width - gridSize;
+      if (head.x >= canvas.width) head.x = 0;
+      if (head.y < 0) head.y = canvas.height - gridSize;
+      if (head.y >= canvas.height) head.y = 0;
+
+      // Check for collision with food
+      if (head.x === food.x && head.y === food.y) {
+        snake.unshift(head);  // Add new head segment to the snake
+        spawnFood();          // Spawn new food at random position
+      } else {
+        snake.unshift(head);  // Add new head segment to the snake
+        snake.pop();           // Remove the last segment (tail)
+      }
+
+      // Check for collision with itself (self-collision only)
+      if (collision(head)) {
+        clearInterval(gameInterval);
+        alert("Game Over! You hit yourself!");
+      }
+
+      draw();
+    }
+
+    function collision(head) {
+      return snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y);
+    }
+
+    function spawnFood() {
+      food = {
+        x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
+        y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize
+      };
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "ArrowUp" && direction !== "down") direction = "up";
+      if (event.key === "ArrowDown" && direction !== "up") direction = "down";
+      if (event.key === "ArrowLeft" && direction !== "right") direction = "left";
+      if (event.key === "ArrowRight" && direction !== "left") direction = "right";
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    // Slower speed - increase interval
+    gameInterval = setInterval(move, 200);  // Change to 200 or higher to slow down
+  </script>
+</body>
+</html>
